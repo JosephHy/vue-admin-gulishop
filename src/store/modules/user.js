@@ -2,15 +2,14 @@ import { login, logout, getInfo } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import { resetRouter } from '@/router'
 
-const getDefaultState = () => {
+function getDefaultState() {
   return {
     token: getToken(),
     name: '',
     avatar: ''
   }
 }
-
-const state = getDefaultState()
+const state = getDefaultState();
 
 const mutations = {
   RESET_STATE: (state) => {
@@ -29,53 +28,39 @@ const mutations = {
 
 const actions = {
   // user login
-  login({ commit }, userInfo) {
+  async login({ commit }, userInfo) {
     const { username, password } = userInfo
-    return new Promise((resolve, reject) => {
-      login({ username: username.trim(), password: password }).then(response => {
-        const { data } = response
-        commit('SET_TOKEN', data.token)
-        setToken(data.token)
-        resolve()
-      }).catch(error => {
-        reject(error)
-      })
-    })
+    const res = await login({ username: username.trim(), password: password });
+    if (res && res.code === 20000) {
+      commit("SET_TOKEN", res.data.token);
+      setToken(res.data.token);
+    } else {
+      alert("登录失败")
+    }
   },
 
   // get user info
-  getInfo({ commit, state }) {
-    return new Promise((resolve, reject) => {
-      getInfo(state.token).then(response => {
-        const { data } = response
-
-        if (!data) {
-          return reject('Verification failed, please Login again.')
-        }
-
-        const { name, avatar } = data
-
-        commit('SET_NAME', name)
-        commit('SET_AVATAR', avatar)
-        resolve(data)
-      }).catch(error => {
-        reject(error)
-      })
-    })
+ async getInfo({ commit, state }) {
+   const res = await getInfo(state.token);
+   if(res && res.code === 20000) {
+     commit("SET_NAME", res.data.name);
+     commit("SET_AVATAR", res.data.avatar);
+   } else {
+     alert("信息验证失败，请重新登录");
+   }
   },
 
   // user logout
-  logout({ commit, state }) {
-    return new Promise((resolve, reject) => {
-      logout(state.token).then(() => {
-        removeToken() // must remove  token  first
-        resetRouter()
-        commit('RESET_STATE')
-        resolve()
-      }).catch(error => {
-        reject(error)
-      })
-    })
+  async logout({ commit, state }) {
+    const res = await logout(state.token);
+    if(res && res.code === 20000) {
+      // 在actions中可以不使用dispatch，直接调取actions中的方法？
+      removeToken();
+      resetRouter();
+      commit('RESET_STATE');
+    } else {
+      alert("退出失败，请重试")
+    }
   },
 
   // remove token
