@@ -53,11 +53,20 @@
       :title="tmForm.id ? '修改品牌' : '添加品牌'"
       :visible.sync="dialogFormVisible"
     >
-      <el-form>
-        <el-form-item label="品牌名称" :label-width="formLabelWidth">
+      <!-- 通过rule添加表单验证 -->
+      <el-form :model="tmForm" :rules="rules" ref="tmForm">
+        <el-form-item
+          label="品牌名称"
+          prop="tmName"
+          :label-width="formLabelWidth"
+        >
           <el-input v-model="tmForm.tmName" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="品牌图片" :label-width="formLabelWidth">
+        <el-form-item
+          label="品牌图片"
+          prop="logoUrl"
+          :label-width="formLabelWidth"
+        >
           <!-- 下面的action属性类似表单中的action, accept是提前限制上传文件的类型 -->
           <el-upload
             class="avatar-uploader"
@@ -78,7 +87,7 @@
       </el-form>
       <!-- 这里的按钮在element-ui内部做了处理，能做到提交表单中的内容 -->
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button @click="cancelDialog">取 消</el-button>
         <el-button type="primary" @click="addOrUpTrademark"> 确 定 </el-button>
       </div>
     </el-dialog>
@@ -103,7 +112,7 @@
     reqAddOneTrademark,
     reqDeleteTrademark,
     reqGetOneTrademark,
-    reqUpdateTrademark
+    reqUpdateTrademark,
   } from "@/api/goods/trademark";
   export default {
     name: "Trademark",
@@ -121,6 +130,15 @@
           logoUrl: "",
         },
         loading: false,
+        // 验证规则
+        rules: {
+          tmName: { required: true, message: "请输入品牌名称", trigger: "blur" },
+          logoUrl: {
+            required: true,
+            message: "请上传一张品牌图片",
+            trigger: "change",
+          },
+        },
       };
     },
     methods: {
@@ -153,6 +171,8 @@
       handleAvatarSuccess(res) {
         // file是一个对象，里面的raw属性可以获取到当前上传的图片信息，里面的response和res是一样的
         this.tmForm.logoUrl = res.data;
+        // 图片上传成功后清除校验
+        this.$refs.tmForm.clearValidate(["logoUrl"]);
       },
       // 上传图片前的判断
       beforeAvatarUpload(file) {
@@ -170,26 +190,33 @@
         return isJPG && isLt2M;
       },
       // 上传品牌/更新品牌
-      async addOrUpTrademark() {
-        let res;
-        if (this.tmForm.id) {
-          // 有id，则是修改品牌，调修改数据接口
-          res = await reqUpdateTrademark(this.tmForm);
-        } else {
-          // 没有，则是上传新品牌
-           res = await reqAddOneTrademark(this.tmForm);
-        }
-        if (res && res.code === 200) {
-            this.$message.success("上传成功");
-            // 重新获取当前页数据
-            this.getBaseTradeMark(this.currentPage, this.limit);
-          } else this.$message.waring("上传失败");
-        // 每次上传或更新完后重置tmForm
-        this.tmForm = {
-          tmName: "",
-          logoUrl: "",
-        };
-        this.dialogFormVisible = false; //关闭弹窗
+      addOrUpTrademark() {
+        this.$refs.tmForm.validate(async (valid) => {
+          if (valid) {
+            let res;
+            if (this.tmForm.id) {
+              // 有id，则是修改品牌，调修改数据接口
+              res = await reqUpdateTrademark(this.tmForm);
+            } else {
+              // 没有，则是上传新品牌
+              res = await reqAddOneTrademark(this.tmForm);
+            }
+            // 每次上传或更新完后重置tmForm
+            this.tmForm = {
+              tmName: "",
+              logoUrl: "",
+            };
+            if (res && res.code === 200) {
+              this.$message.success("上传成功");
+              this.dialogFormVisible = false; //关闭弹窗
+              // 重新获取当前页数据
+              this.currentPage !== 1 ? (this.currentPage = 1) : "";
+              this.getBaseTradeMark(this.currentPage, this.limit);
+            } else this.$message.waring("上传失败");
+          } else {
+            return false;
+          }
+        });
       },
       // 删除品牌
       deleteTrademark(row) {
@@ -224,6 +251,14 @@
         if (res && res.code === 200) {
           this.tmForm = res.data;
         } else this.$message.danger("获取失败");
+      },
+      // 对话框点击取消
+      cancelDialog() {
+        this.tmForm = {
+          tmName: "",
+          logoUrl: "",
+        };
+        this.dialogFormVisible = false;
       },
     },
     mounted() {

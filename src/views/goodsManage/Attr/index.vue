@@ -1,6 +1,6 @@
 <template>
  <div>
-   Attr
+   <CategorySelect></CategorySelect>
  </div>
 </template>
 
