@@ -1,15 +1,12 @@
 <template>
- <div>
-   <CategorySelect></CategorySelect>
- </div>
+  <div>123123</div>
 </template>
 
 <script>
- export default {
-   name: 'Attr',
- }
+  export default {
+    name: "Attr",
+  };
 </script>
 
 <style scoped>
-
 </style>
