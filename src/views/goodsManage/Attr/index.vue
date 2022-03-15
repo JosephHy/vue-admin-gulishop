@@ -1,5 +1,7 @@
 <template>
-  <div>123123</div>
+  <div>
+    <CategorySelect></CategorySelect>
+  </div>
 </template>
 
 <script>

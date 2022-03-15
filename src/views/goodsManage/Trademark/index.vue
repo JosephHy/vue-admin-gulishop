@@ -22,6 +22,7 @@
       <el-table-column prop="logoUrl" label="品牌Logo" align="center">
         <template v-slot="{ row }">
           <div>
+            {{row}}
             <img
               :src="row.logoUrl"
               :alt="row.tmName"
