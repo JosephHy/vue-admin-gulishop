@@ -1,15 +1,27 @@
 <template>
- <div>
-   <CategorySelect></CategorySelect>
- </div>
+  <div>
+    <CategorySelect></CategorySelect>
+    <AttrList v-if="isShow" @changeShow="isShow=$event"></AttrList>
+    <AddAttr v-else @changeShow="isShow=$event"></AddAttr>
+  </div>
 </template>
 
 <script>
- export default {
-   name: 'Attr',
- }
+  import AttrList from "./components/AttrList.vue";
+  import AddAttr from "./components/AddAttr.vue";
+  export default {
+    name: "Attr",
+    data() {
+      return {
+        isShow: true,
+      }
+    },
+    components: {
+      AttrList,
+      AddAttr,
+    },
+  };
 </script>
 
 <style scoped>
-
 </style>
