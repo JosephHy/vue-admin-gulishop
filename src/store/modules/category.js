@@ -20,6 +20,8 @@ export default {
       // 在选择新的一级分类时要把原本的二三级清除
       state.category2Id = "";
       state.category3Id = "";
+      // 并清除3级列表的数据
+      state.category3List = [];
     },
     SET_CATEGORY3(state, { data, id2 }) {
       // 同时设置id和list
